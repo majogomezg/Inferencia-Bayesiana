@@ -98,15 +98,27 @@ El método query devuelve un objeto que contiene los valores de probabilidad aso
 
 7. Interpretación de los resultados
 
-Por ejemplo, para la consulta:
+Para la consulta:
 
 P(Severidad | Alcohol=Si, Clima=Lluvia)
 
 
 El resultado podría ser:
 
-P(Severidad = Leve) = 0.6234
+Severidad = Leve  →  0.6234
+Severidad = Grave →  0.3766
 
-P(Severidad = Grave) = 0.3766
 
 Esto significa que, dadas las condiciones de lluvia y consumo de alcohol, la red predice una probabilidad del 37.7% de que el accidente sea grave y del 62.3% de que sea leve.
+
+8. Fuentes de referencia
+
+Documentación oficial de pgmpy: https://pgmpy.org/
+
+Módulo DiscreteBayesianNetwork: https://pgmpy.org/models/bayesiannetwork.html
+
+Clases TabularCPD y VariableElimination:
+
+https://pgmpy.org/factors/tabularcpd.html
+
+https://pgmpy.org/inference/variable_elimination.html
