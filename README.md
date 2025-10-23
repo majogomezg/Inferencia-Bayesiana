@@ -2,7 +2,7 @@ Construcción de una Red Bayesiana con pgmpy
 
 Este proyecto implementa una red Bayesiana en Python utilizando la librería pgmpy
 .
-La red modela la relación entre variables que influyen en la probabilidad de accidentes viales, integrando factores humanos y ambientales.
+Para usar de ejemplo se usa una red que modela la relación entre variables que influyen en la probabilidad de accidentes viales, integrando factores humanos y ambientales.
 A continuación se describen los pasos requeridos para construir el modelo, verificar su consistencia y realizar inferencias probabilísticas.
 
 1. Definir la estructura del modelo
