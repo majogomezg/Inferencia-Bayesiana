@@ -243,6 +243,9 @@ def run_queries():
     # Q5: Probabilidad de que Bella sea vampiro dado que es un día soleado y Volturi está ausente
     queries['Q5'] = ('BS','Vampire', {'W':'Sunny','T':'Day','V':'No'})
 
+    # Q6 : Bella vampiro si se observa TB alta y HS alta (sin evidencia de W/T/V)
+    queries['Q6'] = ('BS','Vampire', {'TB':'High','HS':'High'})
+
     results = OrderedDict()
 
     if _use_pomegranate:
