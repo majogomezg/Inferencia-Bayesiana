@@ -1,5 +1,5 @@
 """
-Modelo Bayesiano del universo de Crepúsculo (versión comentada y humanizada)
+Modelo Bayesiano del universo de Crepúsculo 
 
 Qué modelamos (nodos):
 - Weather: Clima (Sunny/Cloudy) influye en actividad vampírica.
@@ -16,16 +16,13 @@ Convenciones de estados (en orden):
 - Para binarios, el estado 0 corresponde a la primera etiqueta y el estado 1 a la segunda.
     Ej.: Weather: 0=Sunny, 1=Cloudy.
 
-Nota sobre columnas en CPDs condicionales:
-- Las columnas se ordenan por el producto cartesiano de los estados de las evidencias
-    en el mismo orden en que aparecen en `evidence=[...]`. La última evidencia es la
-    que varía más rápido.
+
 """
 from pgmpy.models import DiscreteBayesianNetwork
 from pgmpy.factors.discrete import TabularCPD
 from pgmpy.inference import VariableElimination
 
-# 1️⃣ Estructura (DAG)
+#  Estructura (DAG)
 model =  DiscreteBayesianNetwork([
     ('Weather', 'VampireActivity'),
     ('Time', 'VampireActivity'),
@@ -43,7 +40,7 @@ model =  DiscreteBayesianNetwork([
 # Nodo raíz independiente no conectado explícitamente en el DAG
 model.add_node('WolvesAlliance')
 
-# 2️⃣ CPDs (con nombres de estados para mayor legibilidad)
+# CPDs (con nombres de estados para mayor legibilidad)
 
 # Raíces (distribuciones previas)
 cpd_weather = TabularCPD(
@@ -145,15 +142,15 @@ cpd_bs = TabularCPD(
     }
 )
 
-# 3️⃣ Agregar CPDs al modelo
+#  Agregar CPDs al modelo
 model.add_cpds(cpd_weather, cpd_time, cpd_volturi, cpd_wolves,
                cpd_va, cpd_tb, cpd_hs, cpd_ed, cpd_bs)
 
-# 4️⃣ Verificar estructura
+#  Verificar estructura
 assert model.check_model()
 print("✅ Modelo correcto y sin ciclos. (Las CPDs incluyen nombres de estados para facilitar la lectura)")
 
-# 5️⃣ Hacer inferencias
+#  Hacer inferencias
 infer = VariableElimination(model)
 
 query = infer.query(variables=['BellaState'], evidence={
