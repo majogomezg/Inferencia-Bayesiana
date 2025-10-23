@@ -1,16 +1,17 @@
-Construcción de una Red Bayesiana en Python con pgmpy
+Construcción de una Red Bayesiana con pgmpy
 
-Este proyecto utiliza la librería pgmpy
- para modelar y realizar inferencias en redes Bayesianas discretas.
-A continuación se resumen los pasos requeridos para construir, verificar e inferir sobre una red según la documentación oficial de la librería.
+Este proyecto implementa una red Bayesiana en Python utilizando la librería pgmpy
+.
+La red modela la relación entre variables que influyen en la probabilidad de accidentes viales, integrando factores humanos y ambientales.
+A continuación se describen los pasos requeridos para construir el modelo, verificar su consistencia y realizar inferencias probabilísticas.
 
 1. Definir la estructura del modelo
 
-La estructura se representa mediante un grafo acíclico dirigido (DAG), donde cada arco indica una relación causal entre variables (nodos).
+El primer paso consiste en definir el grafo acíclico dirigido (DAG) que describe las dependencias entre las variables.
+Cada arco indica una relación causal de la forma padre → hijo.
 
 from pgmpy.models import DiscreteBayesianNetwork
 
-# Definición del grafo
 model = DiscreteBayesianNetwork([
     ('Alcohol', 'Riesgo'),
     ('Clima', 'Riesgo'),
@@ -21,11 +22,11 @@ model = DiscreteBayesianNetwork([
 ])
 
 
-Cada tupla (A, B) indica que A es padre de B.
+En este ejemplo, Alcohol y Clima influyen sobre Riesgo, y este a su vez afecta la probabilidad de Accidente, el cual determina la Severidad.
 
-2. Especificar los estados de las variables
+2. Definir los estados de las variables
 
-Cada variable discreta debe tener un conjunto de estados o categorías posibles:
+Cada nodo de la red representa una variable discreta con estados definidos:
 
 states = {
     "Alcohol": ["No", "Si"],
@@ -39,7 +40,7 @@ states = {
 
 3. Definir las Tablas de Probabilidad Condicional (CPDs)
 
-Las CPDs describen las dependencias probabilísticas de cada nodo con respecto a sus padres.
+Cada variable debe asociarse con una tabla de probabilidad condicional (TabularCPD), que describe cómo varía su probabilidad según sus padres.
 
 from pgmpy.factors.discrete import TabularCPD
 
@@ -49,59 +50,63 @@ cpd_alcohol = TabularCPD("Alcohol", 2, [[0.8], [0.2]])
 # Variable con padres
 cpd_riesgo = TabularCPD(
     "Riesgo", 2,
-    [[0.9, 0.7, 0.6, 0.3, 0.6, 0.3, 0.2, 0.1],
-     [0.1, 0.3, 0.4, 0.7, 0.4, 0.7, 0.8, 0.9]],
+    [[0.9, 0.7, 0.6, 0.3, 0.6, 0.3, 0.2, 0.1],   # Riesgo = Bajo
+     [0.1, 0.3, 0.4, 0.7, 0.4, 0.7, 0.8, 0.9]],  # Riesgo = Alto
     evidence=["Alcohol", "Clima", "Velocidad"],
     evidence_card=[2, 2, 2]
 )
 
 
-Cada columna representa una combinación posible de los estados de los padres.
-El orden de las columnas sigue la convención en que el último evidence varía más rápido.
+Cada columna representa una combinación de los estados de las variables padre.
+El último elemento de evidence es el que varía más rápido en la tabla.
 
 4. Agregar las CPDs al modelo
 
-Después de definir las tablas, se agregan al modelo:
+Una vez creadas todas las tablas de probabilidad, se agregan al modelo:
 
-model.add_cpds(cpd_alcohol, cpd_riesgo, cpd_clima, cpd_hora, cpd_velocidad, cpd_accidente, cpd_severidad)
+model.add_cpds(
+    cpd_alcohol,
+    cpd_clima,
+    cpd_hora,
+    cpd_velocidad,
+    cpd_riesgo,
+    cpd_accidente,
+    cpd_severidad
+)
 
 5. Verificar la consistencia del modelo
 
-Antes de ejecutar inferencias, se valida que todas las CPDs sean consistentes y que las columnas sumen 1.
+Antes de ejecutar cualquier inferencia, se recomienda verificar que todas las CPDs sean coherentes con la estructura y que cada columna sume 1.
 
 print("Modelo válido:", model.check_model())
 
 
-Si el resultado es True, el modelo es consistente.
+Si el resultado es True, la red es consistente y puede utilizarse para inferencias.
 
-6. Aplicar inferencia Bayesiana
+6. Realizar inferencia Bayesiana
 
-Para realizar consultas probabilísticas condicionadas, se usa el método de eliminación de variables.
+Para calcular probabilidades condicionadas se utiliza la clase VariableElimination, que aplica el algoritmo de eliminación de variables descrito en la documentación oficial.
 
 from pgmpy.inference import VariableElimination
 
 infer = VariableElimination(model)
-
-# Ejemplo: calcular probabilidad de severidad dada evidencia
 q = infer.query(variables=["Severidad"], evidence={"Alcohol": "Si", "Clima": "Lluvia"})
 print(q)
 
 
-El resultado devuelve la distribución posterior de la variable consultada (en este caso, Severidad) dadas las evidencias especificadas.
+El método query devuelve un objeto que contiene los valores de probabilidad asociados a cada estado de la variable consultada.
 
-7. Interpretar los resultados
+7. Interpretación de los resultados
 
-La salida de pgmpy muestra los valores de probabilidad para cada estado de la variable consultada.
-Por ejemplo:
+Por ejemplo, para la consulta:
 
-+-------------+-----------+
-| Severidad   | phi(Severidad) |
-+=============+===========+
-| Leve        | 0.6234 |
-| Grave       | 0.3766 |
-+-------------+-----------+
+P(Severidad | Alcohol=Si, Clima=Lluvia)
 
 
-Esto se interpreta como:
+El resultado podría ser:
 
-Dadas las condiciones Alcohol=Sí y Clima=Lluvia, la probabilidad de que el accidente sea grave es del 37.7%, y de que sea leve es del 62.3%.
+P(Severidad = Leve) = 0.6234
+
+P(Severidad = Grave) = 0.3766
+
+Esto significa que, dadas las condiciones de lluvia y consumo de alcohol, la red predice una probabilidad del 37.7% de que el accidente sea grave y del 62.3% de que sea leve.
